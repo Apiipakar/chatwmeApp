@@ -292,7 +292,8 @@ class _ConversationScreenState extends State<ConversationScreen> {
                     ),
                   ),
                   Container(
-                    padding: EdgeInsets.all(5),
+                    margin: EdgeInsets.symmetric(horizontal: 10),
+                    padding: EdgeInsets.all(10),
                     width: double.infinity,
                     child: Row(
                       children: [
@@ -305,14 +306,13 @@ class _ConversationScreenState extends State<ConversationScreen> {
                                 _isTextFieldEmpty = value.trim().isEmpty;
                               });
                             },
-                            maxLines:
-                                null, // Allows for unlimited number of lines
+                            maxLines: 2, // Allows for unlimited number of lines
                             keyboardType: TextInputType.multiline,
                             decoration: InputDecoration(
                                 focusColor: MyColors.primaryColor,
                                 hoverColor: MyColors.primaryColor,
-                                // contentPadding: const EdgeInsets.symmetric(
-                                //     vertical: 2, horizontal: 20),
+                                contentPadding: const EdgeInsets.symmetric(
+                                    vertical: 5, horizontal: 20),
                                 border: OutlineInputBorder(
                                   gapPadding: 5,
                                   borderRadius: BorderRadius.circular(
@@ -320,12 +320,6 @@ class _ConversationScreenState extends State<ConversationScreen> {
                                 ),
                                 labelText:
                                     _isTextFieldEmpty ? "Type here.." : null,
-                                prefixIcon: _isTextFieldEmpty
-                                    ? IconButton(
-                                        icon: const Icon(
-                                            Icons.sentiment_satisfied),
-                                        onPressed: () {})
-                                    : null,
                                 suffixIcon: _isTextFieldEmpty
                                     ? IconButton(
                                         icon: const Icon(Icons.attach_file),

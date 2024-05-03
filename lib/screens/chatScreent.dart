@@ -142,90 +142,157 @@ class _ChatScreenState extends State<ChatScreen> {
         ),
         actions: const [Icon(Icons.more_vert)],
       ),
-      body: SafeArea(
-        child: Container(
-          child: Stack(
-            children: [
-              Expanded(
-                flex: 3,
-                child: Container(
-                  color: Colors.grey[200],
-                  padding: const EdgeInsets.all(10),
-                  width: double.infinity,
-                  height: 700,
-                  child: const SingleChildScrollView(
-                    scrollDirection: Axis.vertical,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [],
-                    ),
-                  ),
+      body: GestureDetector(
+        onTap: () {
+          FocusScope.of(context).unfocus();
+        },
+        child: SafeArea(
+            child: Column(
+          children: [
+            Expanded(
+              child: Container(
+                width: double.infinity,
+                // color: Colors.red,
+                child: ListView.builder(
+                  scrollDirection: Axis.vertical,
+                  itemCount: 3000,
+                  itemBuilder: (context, index) {
+                    // return Text("helooo");
+                  },
                 ),
               ),
-              Positioned(
-                left: 0,
-                bottom: 0,
-                right: 0,
-                child: Container(
-                  height: 80,
-                  color: Colors.white,
-                  padding:
-                      const EdgeInsets.symmetric(vertical: 5, horizontal: 5),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        flex: 2,
-                        child: TextField(
-                          controller: _messageText,
-                          onChanged: (value) {
-                            setState(() {
-                              _isTextFieldEmpty = value.trim().isEmpty;
-                            });
-                          },
-                          maxLines:
-                              null, // Allows for unlimited number of lines
-                          keyboardType: TextInputType.multiline,
-                          decoration: InputDecoration(
-                              focusColor: MyColors.primaryColor,
-                              hoverColor: MyColors.primaryColor,
-                              // contentPadding: const EdgeInsets.symmetric(
-                              //     vertical: 2, horizontal: 20),
-                              border: OutlineInputBorder(
-                                gapPadding: 5,
-                                borderRadius: BorderRadius.circular(
-                                    25.0), // Adjust the value to change the roundness
-                              ),
-                              labelText:
-                                  _isTextFieldEmpty ? "Type here.." : null,
-                              prefixIcon: _isTextFieldEmpty
-                                  ? IconButton(
-                                      icon:
-                                          const Icon(Icons.sentiment_satisfied),
-                                      onPressed: () {})
-                                  : null,
-                              suffixIcon: _isTextFieldEmpty
-                                  ? IconButton(
-                                      icon: const Icon(Icons.attach_file),
-                                      onPressed: _pickImage)
-                                  : null),
-                        ),
-                      ),
-                      IconButton(
-                        onPressed: _isTextFieldEmpty
-                            ? null
-                            : () {
-                                // sendMessage(_messageText.text);
-                                sendMessage(_messageText.text);
-                              },
-                        icon: const Icon(Icons.send),
-                      ),
-                    ],
+            ),
+            Container(
+              margin: EdgeInsets.symmetric(horizontal: 10),
+              padding: EdgeInsets.all(10),
+              width: double.infinity,
+              child: Row(
+                children: [
+                  Expanded(
+                    flex: 2,
+                    child: TextField(
+                      controller: _messageText,
+                      onChanged: (value) {
+                        setState(() {
+                          _isTextFieldEmpty = value.trim().isEmpty;
+                        });
+                      },
+                      maxLines: 2, // Allows for unlimited number of lines
+                      keyboardType: TextInputType.multiline,
+                      decoration: InputDecoration(
+                          focusColor: MyColors.primaryColor,
+                          hoverColor: MyColors.primaryColor,
+                          contentPadding: const EdgeInsets.symmetric(
+                              vertical: 5, horizontal: 20),
+                          border: OutlineInputBorder(
+                            gapPadding: 5,
+                            borderRadius: BorderRadius.circular(
+                                30.0), // Adjust the value to change the roundness
+                          ),
+                          labelText: _isTextFieldEmpty ? "Type here.." : null,
+                          suffixIcon: _isTextFieldEmpty
+                              ? IconButton(
+                                  icon: const Icon(Icons.attach_file),
+                                  onPressed: _pickImage)
+                              : null),
+                    ),
                   ),
+                  IconButton(
+                    onPressed: _isTextFieldEmpty && _imageFile == null
+                        ? null
+                        : () {
+                            // sendMessage(_messageText.text);
+                            sendMessage(_messageText.text);
+                          },
+                    icon: const Icon(Icons.send),
+                  ),
+                ],
+              ),
+            )
+          ],
+        )),
+      ),
+    );
+  }
+
+  Widget oldContainer() {
+    return Container(
+      child: Stack(
+        children: [
+          Expanded(
+            flex: 3,
+            child: Container(
+              color: Colors.grey[200],
+              padding: const EdgeInsets.all(10),
+              width: double.infinity,
+              height: 700,
+              child: const SingleChildScrollView(
+                scrollDirection: Axis.vertical,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [],
                 ),
-              )
-            ],
+              ),
+            ),
           ),
-        ),
+          Positioned(
+            left: 0,
+            bottom: 0,
+            right: 0,
+            child: Container(
+              height: 80,
+              color: Colors.white,
+              padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 5),
+              child: Row(
+                children: [
+                  Expanded(
+                    flex: 2,
+                    child: TextField(
+                      controller: _messageText,
+                      onChanged: (value) {
+                        setState(() {
+                          _isTextFieldEmpty = value.trim().isEmpty;
+                        });
+                      },
+                      maxLines: null, // Allows for unlimited number of lines
+                      keyboardType: TextInputType.multiline,
+                      decoration: InputDecoration(
+                          focusColor: MyColors.primaryColor,
+                          hoverColor: MyColors.primaryColor,
+                          // contentPadding: const EdgeInsets.symmetric(
+                          //     vertical: 2, horizontal: 20),
+                          border: OutlineInputBorder(
+                            gapPadding: 5,
+                            borderRadius: BorderRadius.circular(
+                                25.0), // Adjust the value to change the roundness
+                          ),
+                          labelText: _isTextFieldEmpty ? "Type here.." : null,
+                          prefixIcon: _isTextFieldEmpty
+                              ? IconButton(
+                                  icon: const Icon(Icons.sentiment_satisfied),
+                                  onPressed: () {})
+                              : null,
+                          suffixIcon: _isTextFieldEmpty
+                              ? IconButton(
+                                  icon: const Icon(Icons.attach_file),
+                                  onPressed: _pickImage)
+                              : null),
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: _isTextFieldEmpty
+                        ? null
+                        : () {
+                            // sendMessage(_messageText.text);
+                            sendMessage(_messageText.text);
+                          },
+                    icon: const Icon(Icons.send),
+                  ),
+                ],
+              ),
+            ),
+          )
+        ],
       ),
     );
   }

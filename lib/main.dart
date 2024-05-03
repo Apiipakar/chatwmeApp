@@ -1,5 +1,6 @@
 import 'package:chatwme/components/Colors.dart';
 import 'package:chatwme/components/Data.dart';
+import 'package:chatwme/components/apiUrl.dart';
 import 'package:chatwme/screens/chats.dart';
 import 'package:chatwme/screens/friends.dart';
 import 'package:chatwme/screens/groups.dart';
@@ -8,6 +9,7 @@ import 'package:chatwme/screens/profile.dart';
 import 'package:chatwme/screens/settings.dart';
 import 'package:flutter/material.dart';
 import "package:shared_preferences/shared_preferences.dart";
+import 'package:http/http.dart' as http;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -31,16 +33,71 @@ class HomePage extends StatefulWidget {
   State<HomePage> createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage> {
+class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   int _selectedIndex = 0;
   var _isLoading = false;
   Data userdt = Data();
+  ApiUrl api = ApiUrl();
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
     fetchData();
+    setUserOnline();
+    updateLastseen();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused) {
+      // Run your function here when the application is exited
+      setUserOffline();
+      updateLastseen();
+    } else if (state == AppLifecycleState.resumed) {
+      setUserOnline();
+      updateLastseen();
+    }
+  }
+
+  Future<void> setUserOnline() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    final response = await http.post(Uri.parse(api.url), body: {
+      "action": "updateOnline",
+      "currentUser": prefs.getInt("userId").toString(),
+      "state": "1",
+    });
+  }
+
+  Future<void> setUserOffline() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    final response = await http.post(Uri.parse(api.url), body: {
+      "action": "updateOnline",
+      "currentUser": prefs.getInt("userId").toString(),
+      "state": "0",
+    });
+  }
+
+  Future<void> updateLastseen() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    final response = await http.post(Uri.parse(api.url), body: {
+      "action": "updateLastSeen",
+      "currentUser": prefs.getInt("userId").toString(),
+      "lastDate": DateTime.now().toIso8601String().toString()
+    });
+
+    if (response.statusCode == 200) {
+      // print(response.body);
+    } else {
+      // print(response.body);
+    }
   }
 
   //fetch data file.

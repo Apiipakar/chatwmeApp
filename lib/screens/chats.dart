@@ -1,12 +1,13 @@
 import "dart:convert";
 import "package:chatwme/screens/conversationScreen.dart";
+import "package:chatwme/screens/users.dart";
+import "package:flutter/cupertino.dart";
+import "package:flutter/painting.dart";
+import "package:flutter/widgets.dart";
 import 'package:intl/intl.dart';
 import "package:chatwme/components/Colors.dart";
-import "package:chatwme/components/Data.dart";
 import "package:chatwme/components/apiUrl.dart";
 import "package:chatwme/components/header.dart";
-import "package:chatwme/screens/chatScreent.dart";
-import "package:chatwme/screens/users.dart";
 import "package:flutter/material.dart";
 import "package:http/http.dart" as http;
 import "package:shared_preferences/shared_preferences.dart";
@@ -20,10 +21,9 @@ class Chats extends StatefulWidget {
 }
 
 class _ChatsState extends State<Chats> {
+  TextEditingController _txtSearch = TextEditingController();
   ApiUrl api = ApiUrl();
-
   bool _isLoading = false;
-
   var ConversationList;
   @override
   void initState() {
@@ -32,15 +32,11 @@ class _ChatsState extends State<Chats> {
     });
     super.initState();
 
-    _Loadchats();
-    updateLastseen();
-    setState(() {
-      _isLoading = false;
-    });
+    _Loadchats(_txtSearch.text);
   }
 
 //load chats
-  Future<void> _Loadchats() async {
+  Future<void> _Loadchats(dynamic txt) async {
     setState(() {
       _isLoading = true; // Show loading indicator
     });
@@ -50,35 +46,21 @@ class _ChatsState extends State<Chats> {
       Uri.parse(api.url),
       body: {
         'action': "LoadUserChats",
+        "txtSearch": txt.toString(),
         "id": prefs.getInt("userId").toString()
       },
     );
 
-    setState(() {
-      _isLoading = false; // Show loading indicator
-    });
     if (response.statusCode == 200) {
       ConversationList = jsonDecode(response.body);
-      // print(ConversationList);
+      print(ConversationList);
+      setState(() {
+        _isLoading = false;
+
+        // Show loading indicator
+      });
     } else {
       ConversationList = jsonDecode(response.body);
-    }
-  }
-
-  //load friend list.
-
-  Future<void> updateLastseen() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    final response = await http.post(Uri.parse(api.url), body: {
-      "action": "updateLastSeen",
-      "currentUser": prefs.getInt("userId").toString(),
-      "lastDate": DateTime.now().toIso8601String().toString()
-    });
-
-    if (response.statusCode == 200) {
-      // print(response.body);
-    } else {
-      // print(response.body);
     }
   }
 
@@ -109,202 +91,173 @@ class _ChatsState extends State<Chats> {
   }
 
   String substrictString(String str) {
-    return str.substring(0, 20) + "...";
+    return str.length > 20 ? str.substring(0, 20) + "..." : str;
   }
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      child: _isLoading
-          ? const Center(
-              child: CircularProgressIndicator(),
-            )
-          : Column(
+    return _isLoading && ConversationList == null
+        ? Center(child: CircularProgressIndicator())
+        : GestureDetector(
+            onTap: () {
+              FocusScope.of(context).unfocus();
+            },
+            child: Column(
               children: [
-                Header(widget.userdt),
-                const SizedBox(
-                  height: 10,
+                Container(
+                  child: Header(widget.userdt),
                 ),
-                const Column(
-                  children: [Text("Chat List")],
-                ),
-                const SizedBox(
-                  height: 20,
-                ),
-                SingleChildScrollView(
-                  scrollDirection: Axis.vertical,
-                  child: Column(
-                    children: [
-                      ConversationList != null &&
-                              ConversationList["status"] == 404
-                          ? Container(
-                              // margin: EdgeInsets.only(top: 150),
+                //search chat.
+                Container(
+                    margin: const EdgeInsets.only(top: 20),
+                    padding: const EdgeInsets.all(10),
+                    child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Expanded(
+                            flex: 3,
+                            child: SizedBox(
+                              height: 40,
+                              child: TextField(
+                                controller: _txtSearch,
+                                onChanged: (value) {
+                                  setState(() {
+                                    _Loadchats(value.toString());
+                                  });
+                                },
+                                decoration: InputDecoration(
+                                  focusColor: MyColors.primaryColor,
+                                  hoverColor: MyColors.primaryColor,
+                                  contentPadding: const EdgeInsets.symmetric(
+                                      vertical: 2, horizontal: 20),
+                                  border: OutlineInputBorder(
+                                    gapPadding: 10,
+                                    borderRadius: BorderRadius.circular(
+                                        30.0), // Adjust the value to change the roundness
+                                  ),
+                                  labelText: "Search",
+                                  suffix: const Icon(
+                                    Icons.search,
+                                    color: MyColors.primaryColor,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(
+                            width: 5,
+                          ),
+                          Container(
+                            width: 40,
+                            decoration: const BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: MyColors.primaryColor),
+                            child: IconButton(
+                              icon: const Icon(
+                                Icons.refresh,
+                                size: 25,
+                                color: Colors.white,
+                              ),
+                              onPressed: () {
+                                setState(() {
+                                  _Loadchats(_txtSearch.text);
+                                });
+                              },
+                            ),
+                          ),
+                        ])),
+                Expanded(
+                  child: Container(
+                      width: double.infinity,
+                      // color: Colors.red,
+                      child: ConversationList["status"] == 404
+                          ? Center(
                               child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  Center(
-                                    child: Text(ConversationList['Data']),
-                                    // Show centered data
-                                  ),
-                                  const SizedBox(
-                                    height: 20,
-                                  ),
-                                  ElevatedButton.icon(
-                                      onPressed: () {
-                                        Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                                builder: (context) =>
-                                                    const UsersList()));
-                                      },
-                                      icon: const Icon(Icons.group_add),
-                                      label: const Text("Add Friend"),
-                                      style: const ButtonStyle(
-                                          padding: MaterialStatePropertyAll(
-                                              EdgeInsets.symmetric(
-                                                  vertical: 5, horizontal: 15)),
-                                          foregroundColor:
-                                              MaterialStatePropertyAll(
-                                                  Colors.white),
-                                          backgroundColor:
-                                              MaterialStatePropertyAll(
-                                                  MyColors.primaryColor),
-                                          shape: MaterialStatePropertyAll(
-                                              RoundedRectangleBorder(
-                                                  borderRadius:
-                                                      BorderRadius.all(
-                                                          Radius.circular(
-                                                              4))))))
+                                  Text(ConversationList["data"].toString()),
+                                  Container(
+                                      child: ElevatedButton(
+                                    child: const Text("Add Friends"),
+                                    style: const ButtonStyle(
+                                        shape: MaterialStatePropertyAll(
+                                            RoundedRectangleBorder(
+                                                borderRadius: BorderRadius.all(
+                                                    Radius.circular(4)))),
+                                        foregroundColor:
+                                            MaterialStatePropertyAll(
+                                                Colors.white),
+                                        backgroundColor:
+                                            MaterialStatePropertyAll(
+                                          MyColors.primaryColor,
+                                        )),
+                                    onPressed: () {
+                                      Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                              builder: (context) =>
+                                                  const UsersList()));
+                                    },
+                                  ))
                                 ],
                               ),
                             )
-                          : Column(
-                              children: [
-                                Container(
-                                  padding: EdgeInsets.all(10),
-                                  child: Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.center,
-                                    children: [
-                                      Expanded(
-                                        flex: 3,
-                                        child: SizedBox(
-                                          height: 40,
-                                          child: TextField(
-                                            // controller: _txtSearch,
-                                            onChanged: (value) {
-                                              // _loadAllFriends(value);
-                                            },
-                                            decoration: InputDecoration(
-                                              focusColor: MyColors.primaryColor,
-                                              hoverColor: MyColors.primaryColor,
-                                              contentPadding:
-                                                  const EdgeInsets.symmetric(
-                                                      vertical: 2,
-                                                      horizontal: 20),
-                                              border: OutlineInputBorder(
-                                                gapPadding: 10,
-                                                borderRadius: BorderRadius.circular(
-                                                    30.0), // Adjust the value to change the roundness
-                                              ),
-                                              labelText: "Search",
-                                              suffix: const Icon(
-                                                Icons.search,
-                                                color: MyColors.primaryColor,
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                      const SizedBox(
-                                        width: 10,
-                                      ),
-                                      Container(
-                                        width: 40,
-                                        decoration: const BoxDecoration(
-                                            shape: BoxShape.circle,
-                                            color: MyColors.primaryColor),
-                                        child: IconButton(
-                                          icon: const Icon(
-                                            Icons.refresh,
-                                            size: 25,
-                                            color: Colors.white,
-                                          ),
-                                          onPressed: () {},
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                _isLoading
-                                    ? const Center(
-                                        child: CircularProgressIndicator(),
-                                      )
-                                    : ConversationList != null &&
-                                            ConversationList["status"] == 200
-                                        ? ListView.builder(
-                                            scrollDirection: Axis.vertical,
-                                            shrinkWrap: true,
-                                            itemCount:
-                                                ConversationList["data"].length,
-                                            itemBuilder: (BuildContext context,
-                                                int index) {
-                                              var user =
-                                                  ConversationList["data"]
-                                                      [index];
-                                              return chats(user);
-                                            },
-                                          )
-                                        : Text("helooo")
-                              ],
-                            ),
-                    ],
-                  ),
-                ),
+                          : Container(
+                              padding: EdgeInsets.all(10),
+                              child: ListView.builder(
+                                  itemCount: ConversationList["data"] != null
+                                      ? ConversationList["data"].length
+                                      : 0,
+                                  itemBuilder: (context, index) {
+                                    var conversation =
+                                        ConversationList["data"][index];
+                                    return chatsList(conversation);
+                                  }))),
+                )
               ],
             ),
-    );
+          );
   }
 
-  Widget chats(user) {
+  Widget chatsList(conversation) {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-      padding: const EdgeInsets.symmetric(vertical: 5),
+      margin: const EdgeInsets.symmetric(vertical: 5),
       decoration: BoxDecoration(
-        border: Border.all(
-          color: Colors.grey.withOpacity(0.2),
-          width: 1,
-        ),
-        borderRadius: BorderRadius.circular(10.0),
-      ),
+          borderRadius: BorderRadius.circular(5),
+          border: Border.all(
+            width: 1,
+            color: Colors.black.withOpacity(0.05),
+          )),
       child: ListTile(
+        onLongPress: () {},
         onTap: () {
           Navigator.push(
               context,
               MaterialPageRoute(
                   builder: (context) => ConversationScreen(
-                      username: user["userOneId"] ==
+                      username: conversation["userOneId"] ==
                               widget.userdt.currentUser["data"][0]["id"]
-                          ? user["UserTwo"]
-                          : user["userOne"],
-                      userId: user["userOneId"] ==
+                          ? conversation["UserTwo"]
+                          : conversation["userOne"],
+                      userId: conversation["userOneId"] ==
                               widget.userdt.currentUser["data"][0]["id"]
-                          ? user["userTwoId"]
-                          : user["userOneId"],
-                      conversationId: user["conversation_id"],
-                      userProfile: user["userOneId"] ==
+                          ? conversation["userTwoId"]
+                          : conversation["userOneId"],
+                      conversationId: conversation["conversation_id"],
+                      userProfile: conversation["userOneId"] ==
                               widget.userdt.currentUser["data"][0]["id"]
-                          ? user["userTwoProfile"].toString()
-                          : user["userOneProfile"].toString())));
+                          ? conversation["userTwoProfile"].toString()
+                          : conversation["userOneProfile"].toString())));
         },
-        horizontalTitleGap: 20,
-        leading: user["userOneId"] == widget.userdt.currentUser['data'][0]['id']
+        minLeadingWidth: 0,
+        leading: conversation["userOneId"] ==
+                widget.userdt.currentUser['data'][0]['id']
             ? ClipRRect(
                 borderRadius: BorderRadius.circular(30),
-                child: user["userTwoProfile"] != null
+                child: conversation["userTwoProfile"] != null
                     ? Image.network(
-                        "${api.profilImageUrl}/${user["userTwoProfile"].toString()}",
+                        "${api.profilImageUrl}/${conversation["userTwoProfile"].toString()}",
                         width: 50,
                         height: 50,
                         fit: BoxFit.cover,
@@ -312,35 +265,40 @@ class _ChatsState extends State<Chats> {
                     : Image.asset("Assets/noprofile.jpg"))
             : ClipRRect(
                 borderRadius: BorderRadius.circular(30),
-                child: user["userOneProfile"] != null
+                child: conversation["userOneProfile"] != null
                     ? Image.network(
-                        "${api.profilImageUrl}/${user["userOneProfile"].toString()}",
+                        "${api.profilImageUrl}/${conversation["userOneProfile"].toString()}",
                         width: 50,
                         height: 50,
                         fit: BoxFit.cover,
                       )
                     : Image.asset("Assets/noprofile.jpg")),
-        title: user["userOneId"] == widget.userdt.currentUser["data"][0]["id"]
+        title: conversation["userOneId"] ==
+                widget.userdt.currentUser["data"][0]["id"]
             ? Text(
-                substrictString(user["UserTwo"]),
+                substrictString(conversation["UserTwo"].toString()),
                 style: const TextStyle(fontWeight: FontWeight.w600),
               )
-            : Text(
-                substrictString(user["userOne"]),
-                style: const TextStyle(fontWeight: FontWeight.w600),
-              ),
+            : Text(conversation["userOne"].toString(),
+                style: const TextStyle(fontWeight: FontWeight.w600)),
         subtitle: Text(
-          user["last_message"],
-          style: TextStyle(color: Colors.black54),
+          conversation["last_message"] == null
+              ? ""
+              : conversation["last_message"],
+          style: const TextStyle(color: Colors.black54),
         ),
         trailing: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
-              formatDateTime(user["sent_at"]),
+              formatDateTime(conversation["sent_at"]),
               style: const TextStyle(fontWeight: FontWeight.w600),
             ),
+            const SizedBox(
+              height: 5,
+            ),
             Text(
-              _formatTime(user["sent_at"]),
+              _formatTime(conversation["sent_at"]),
             )
           ],
         ),
