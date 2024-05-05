@@ -123,7 +123,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   Widget build(BuildContext context) {
     List<Widget> screens = [
       Chats(userdt: userdt),
-      const Groups(),
+      Groups(userdt: userdt),
       const Friends(),
       const Profile(),
       const Settings(),

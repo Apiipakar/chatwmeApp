@@ -53,7 +53,7 @@ class _ChatsState extends State<Chats> {
 
     if (response.statusCode == 200) {
       ConversationList = jsonDecode(response.body);
-      print(ConversationList);
+
       setState(() {
         _isLoading = false;
 
@@ -92,11 +92,6 @@ class _ChatsState extends State<Chats> {
 
   String substrictString(String str) {
     return str.length >= 20 ? str.substring(0, 20) + "..." : str;
-    // if (str.length >= 20) {
-    //   return str.substring(0, 20);
-    // } else {
-    //   return str;
-    // }
   }
 
   @override
@@ -235,7 +230,6 @@ class _ChatsState extends State<Chats> {
             color: Colors.black.withOpacity(0.05),
           )),
       child: ListTile(
-        onLongPress: () {},
         onTap: () async {
           final Result = await Navigator.push(
               context,

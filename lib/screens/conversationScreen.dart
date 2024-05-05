@@ -69,7 +69,13 @@ class _ConversationScreenState extends State<ConversationScreen> {
       setState(() {
         if (pickedFile != null) {
           _imageFile = File(pickedFile.path);
-          print("image picked and it is $_imageFile");
+          // print("image picked and it is $_imageFile");
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text("image selected successfully"),
+              duration: Duration(seconds: 1),
+            ),
+          );
         } else {
           print('No image selected.');
         }
@@ -275,8 +281,8 @@ class _ConversationScreenState extends State<ConversationScreen> {
                                       TextButton(
                                           onPressed: () {
                                             deleteMessage(messageToDeleteId);
-                                            getMessages();
                                             setState(() {
+                                              getMessages();
                                               messageToDeleteId = null;
                                               Navigator.of(context).pop();
                                               _hideDeleteButton = true;
@@ -322,7 +328,7 @@ class _ConversationScreenState extends State<ConversationScreen> {
                         scrollDirection: Axis.vertical,
                         itemBuilder: (context, index) {
                           var ms = messages[index];
-
+                          print(ms);
                           DateTime messageDateTime =
                               DateTime.parse(ms["sent_at"]);
 
@@ -428,7 +434,7 @@ class _ConversationScreenState extends State<ConversationScreen> {
                   ),
                 ),
                 padding: const EdgeInsets.all(5),
-                margin: EdgeInsets.only(right: 10, bottom: 5),
+                margin: EdgeInsets.only(right: 10, top: 5),
                 child: IntrinsicWidth(
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.end,
@@ -452,8 +458,8 @@ class _ConversationScreenState extends State<ConversationScreen> {
                                     padding: EdgeInsets.all(0),
                                     child: Image.network(
                                         width: 200,
-                                        height: 150,
-                                        "${api.messagImageUrl}/${message["messageImage"].toString()}")),
+                                        height: 200,
+                                        "${api.messagImageUrl}/${message['messageImage'].toString()}")),
                                 Row(
                                   children: [
                                     Text(message["message_content"]),
@@ -496,7 +502,7 @@ class _ConversationScreenState extends State<ConversationScreen> {
                   ),
                 ),
                 padding: const EdgeInsets.all(5),
-                margin: EdgeInsets.only(left: 10, bottom: 15, top: 10),
+                margin: EdgeInsets.only(left: 10, top: 5),
                 child: IntrinsicWidth(
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.end,
@@ -518,11 +524,10 @@ class _ConversationScreenState extends State<ConversationScreen> {
                                 Container(
                                     margin: EdgeInsets.all(0),
                                     padding: EdgeInsets.all(0),
-                                    child: const Image(
+                                    child: Image.network(
                                         width: 200,
                                         height: 150,
-                                        image: AssetImage(
-                                            "Assets/testImage.jpg"))),
+                                        "${api.messagImageUrl}/${message['messageImage'].toString()}")),
                                 Row(
                                   children: [
                                     Text(message["message_content"]),

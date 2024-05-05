@@ -421,7 +421,7 @@ class _ChatScreenState extends State<ChatScreen> {
                   ),
                 ),
                 padding: const EdgeInsets.all(5),
-                margin: EdgeInsets.only(right: 10, bottom: 5),
+                margin: EdgeInsets.only(right: 10),
                 child: IntrinsicWidth(
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.end,
@@ -510,11 +510,10 @@ class _ChatScreenState extends State<ChatScreen> {
                                 Container(
                                     margin: EdgeInsets.all(0),
                                     padding: EdgeInsets.all(0),
-                                    child: const Image(
+                                    child: Image.network(
                                         width: 200,
-                                        height: 150,
-                                        image: AssetImage(
-                                            "Assets/testImage.jpg"))),
+                                        height: 200,
+                                        "${api.messagImageUrl}/${message['messageImage'].toString()}")),
                                 Row(
                                   children: [
                                     Text(message["message_content"]),
