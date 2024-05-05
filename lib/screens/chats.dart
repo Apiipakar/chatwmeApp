@@ -91,7 +91,12 @@ class _ChatsState extends State<Chats> {
   }
 
   String substrictString(String str) {
-    return str.length > 20 ? str.substring(0, 20) + "..." : str;
+    return str.length >= 20 ? str.substring(0, 20) + "..." : str;
+    // if (str.length >= 20) {
+    //   return str.substring(0, 20);
+    // } else {
+    //   return str;
+    // }
   }
 
   @override
@@ -231,8 +236,8 @@ class _ChatsState extends State<Chats> {
           )),
       child: ListTile(
         onLongPress: () {},
-        onTap: () {
-          Navigator.push(
+        onTap: () async {
+          final Result = await Navigator.push(
               context,
               MaterialPageRoute(
                   builder: (context) => ConversationScreen(
@@ -249,6 +254,10 @@ class _ChatsState extends State<Chats> {
                               widget.userdt.currentUser["data"][0]["id"]
                           ? conversation["userTwoProfile"].toString()
                           : conversation["userOneProfile"].toString())));
+
+          if (Result != null && Result == true) {
+            _Loadchats(_txtSearch.text);
+          }
         },
         minLeadingWidth: 0,
         leading: conversation["userOneId"] ==
@@ -279,7 +288,7 @@ class _ChatsState extends State<Chats> {
                 substrictString(conversation["UserTwo"].toString()),
                 style: const TextStyle(fontWeight: FontWeight.w600),
               )
-            : Text(conversation["userOne"].toString(),
+            : Text(substrictString(conversation["userOne"].toString()),
                 style: const TextStyle(fontWeight: FontWeight.w600)),
         subtitle: Text(
           conversation["last_message"] == null

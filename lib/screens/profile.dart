@@ -59,6 +59,29 @@ class _ProfileState extends State<Profile> {
     });
   }
 
+  //set user offline
+  Future<void> setUserOffline() async {
+    setState(() {
+      _isLoading = true;
+    });
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    final response = await http.post(Uri.parse(api.url), body: {
+      "action": "updateOnline",
+      "currentUser": prefs.getInt("userId").toString(),
+      "state": "0",
+    });
+    if (response.statusCode == 200) {
+      setState(() {
+        _isLoading = false;
+      });
+      print(jsonDecode(response.body));
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      prefs.remove("userId");
+      Navigator.push(
+          context, MaterialPageRoute(builder: (context) => const Login()));
+    }
+  }
+
   Future<void> uploadFile() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     if (_imageFile == null) {
@@ -237,16 +260,7 @@ class _ProfileState extends State<Profile> {
                             width: 10,
                           ),
                           ElevatedButton.icon(
-                              onPressed: () async {
-                                SharedPreferences prefs =
-                                    await SharedPreferences.getInstance();
-                                prefs.remove("userId");
-
-                                Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                        builder: (context) => const Login()));
-                              },
+                              onPressed: setUserOffline,
                               icon: const Icon(Icons.logout),
                               label: const Text("Logout"),
                               style: const ButtonStyle(

@@ -1,5 +1,7 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'package:flutter/cupertino.dart';
 import 'package:intl/intl.dart';
 import "package:http/http.dart" as http;
 import 'package:chatwme/components/Colors.dart';
@@ -26,6 +28,9 @@ class ConversationScreen extends StatefulWidget {
 }
 
 class _ConversationScreenState extends State<ConversationScreen> {
+  bool _hideDeleteButton = false;
+  var messageToDeleteId;
+  bool _isSelected = false;
   DateTime? _previousDate;
   ApiUrl api = ApiUrl();
   TextEditingController _messageText = TextEditingController();
@@ -168,6 +173,21 @@ class _ConversationScreenState extends State<ConversationScreen> {
     }
   }
 
+  Future<void> deleteMessage(dynamic msg) async {
+    final response = await http.post(Uri.parse(api.url), body: {
+      "action": "deleteMessage",
+      "messageId": msg.toString(),
+    });
+    if (response.statusCode == 200) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(jsonDecode(response.body)["message"].toString()),
+          duration: Duration(seconds: 3),
+        ),
+      );
+    } else {}
+  }
+
 //get only time from datetime string
   String _formatTime(String time) {
     DateTime dateTime = DateTime.parse(time);
@@ -180,7 +200,6 @@ class _ConversationScreenState extends State<ConversationScreen> {
     return '$hour:$minute $period';
   }
 
-  final List<String> items = ['Item 1', 'Item 2', 'Item 3', 'Item 4', 'Item 5'];
   @override
   Widget build(BuildContext context) {
     return _isLoading
@@ -197,7 +216,7 @@ class _ConversationScreenState extends State<ConversationScreen> {
               leading: IconButton(
                 icon: const Icon(Icons.arrow_back),
                 onPressed: () {
-                  Navigator.of(context).pop();
+                  Navigator.pop(context, true);
                 },
               ),
               title: Row(
@@ -242,7 +261,49 @@ class _ConversationScreenState extends State<ConversationScreen> {
                   ),
                 ],
               ),
-              actions: const [Icon(Icons.more_vert)],
+              actions: [
+                _hideDeleteButton == true
+                    ? GestureDetector(
+                        onTap: () {
+                          showDialog(
+                              context: context,
+                              builder: (context) => AlertDialog(
+                                    title: const Text("Delete Message"),
+                                    content: const Text(
+                                        "Are you sure you want to delete this message"),
+                                    actions: [
+                                      TextButton(
+                                          onPressed: () {
+                                            deleteMessage(messageToDeleteId);
+                                            getMessages();
+                                            setState(() {
+                                              messageToDeleteId = null;
+                                              Navigator.of(context).pop();
+                                              _hideDeleteButton = true;
+                                            });
+                                          },
+                                          child: Text("Yes")),
+                                      TextButton(
+                                          onPressed: () {
+                                            Navigator.of(context).pop();
+                                            setState(() {
+                                              _hideDeleteButton = true;
+                                            });
+                                          },
+                                          child: Text("No"))
+                                    ],
+                                  ));
+                        },
+                        child: const Icon(
+                          Icons.delete,
+                          color: MyColors.primaryColor,
+                        ),
+                      )
+                    : const SizedBox(
+                        width: 0,
+                      ),
+                Icon(Icons.more_vert),
+              ],
             ),
             body: GestureDetector(
               onTap: () {
@@ -261,6 +322,7 @@ class _ConversationScreenState extends State<ConversationScreen> {
                         scrollDirection: Axis.vertical,
                         itemBuilder: (context, index) {
                           var ms = messages[index];
+
                           DateTime messageDateTime =
                               DateTime.parse(ms["sent_at"]);
 
@@ -347,62 +409,134 @@ class _ConversationScreenState extends State<ConversationScreen> {
 
   Widget buildMessageWidget(message) {
     return message["senderId"] != receiverInfo["data"][0]["id"]
-        ? Align(
-            alignment: Alignment.bottomRight,
-            child: Container(
-              decoration: const BoxDecoration(
-                color: Color(0xFFE4D3D3),
-                borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(20),
-                  bottomLeft: Radius.circular(20),
-                  bottomRight: Radius.circular(20),
+        ? GestureDetector(
+            onLongPress: () {
+              setState(() {
+                messageToDeleteId = message["messageId"];
+                _hideDeleteButton = !_hideDeleteButton;
+              });
+            },
+            child: Align(
+              alignment: Alignment.bottomRight,
+              child: Container(
+                decoration: const BoxDecoration(
+                  color: Color(0xFFE4D3D3),
+                  borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(20),
+                    bottomLeft: Radius.circular(20),
+                    bottomRight: Radius.circular(20),
+                  ),
                 ),
-              ),
-              padding: const EdgeInsets.all(5),
-              margin: EdgeInsets.only(right: 10, bottom: 5),
-              child: IntrinsicWidth(
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text(message["message_content"]),
-                    const SizedBox(width: 10),
-                    Text(
-                      _formatTime(message["sent_at"]),
-                      style: const TextStyle(fontSize: 10),
-                    ),
-                  ],
+                padding: const EdgeInsets.all(5),
+                margin: EdgeInsets.only(right: 10, bottom: 5),
+                child: IntrinsicWidth(
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      message["messageImage"] == null
+                          ? Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                  Text(message["message_content"]),
+                                  const SizedBox(width: 10),
+                                  Text(
+                                    _formatTime(message["sent_at"]),
+                                    style: const TextStyle(fontSize: 10),
+                                  ),
+                                ])
+                          : Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Container(
+                                    margin: EdgeInsets.all(0),
+                                    padding: EdgeInsets.all(0),
+                                    child: Image.network(
+                                        width: 200,
+                                        height: 150,
+                                        "${api.messagImageUrl}/${message["messageImage"].toString()}")),
+                                Row(
+                                  children: [
+                                    Text(message["message_content"]),
+                                    const SizedBox(width: 10),
+                                    Text(
+                                      _formatTime(message["sent_at"]),
+                                      style: const TextStyle(fontSize: 10),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            )
+                    ],
+                  ),
                 ),
               ),
             ),
           )
-        : Align(
-            alignment: Alignment.bottomLeft,
-            child: Container(
-              decoration: BoxDecoration(
-                border: Border.all(
-                  width: 1,
-                  color: Colors.black.withOpacity(0.2),
+        : GestureDetector(
+            onLongPress: () {
+              print(message);
+              setState(() {
+                _hideDeleteButton = !_hideDeleteButton;
+                // _isSelected = !_isSelected;
+              });
+            },
+            child: Align(
+              alignment: Alignment.bottomLeft,
+              child: Container(
+                decoration: BoxDecoration(
+                  border: Border.all(
+                    width: 1,
+                    color: Colors.black.withOpacity(0.2),
+                  ),
+                  color: Color(0xFFF6F6F6),
+                  borderRadius: const BorderRadius.only(
+                    topRight: Radius.circular(20),
+                    bottomLeft: Radius.circular(20),
+                    bottomRight: Radius.circular(20),
+                  ),
                 ),
-                color: Color(0xFFF6F6F6),
-                borderRadius: const BorderRadius.only(
-                  topRight: Radius.circular(20),
-                  bottomLeft: Radius.circular(20),
-                  bottomRight: Radius.circular(20),
-                ),
-              ),
-              padding: const EdgeInsets.all(5),
-              margin: EdgeInsets.only(left: 10, bottom: 5),
-              child: IntrinsicWidth(
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text(message["message_content"]),
-                    const SizedBox(width: 10),
-                    Text(
-                      _formatTime(message["sent_at"]),
-                      style: TextStyle(fontSize: 10),
-                    ),
-                  ],
+                padding: const EdgeInsets.all(5),
+                margin: EdgeInsets.only(left: 10, bottom: 15, top: 10),
+                child: IntrinsicWidth(
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      message["messageImage"] == null
+                          ? Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                  Text(message["message_content"]),
+                                  const SizedBox(width: 10),
+                                  Text(
+                                    _formatTime(message["sent_at"]),
+                                    style: const TextStyle(fontSize: 10),
+                                  ),
+                                ])
+                          : Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Container(
+                                    margin: EdgeInsets.all(0),
+                                    padding: EdgeInsets.all(0),
+                                    child: const Image(
+                                        width: 200,
+                                        height: 150,
+                                        image: AssetImage(
+                                            "Assets/testImage.jpg"))),
+                                Row(
+                                  children: [
+                                    Text(message["message_content"]),
+                                    const SizedBox(width: 10),
+                                    Text(
+                                      _formatTime(message["sent_at"]),
+                                      style: const TextStyle(fontSize: 10),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            )
+                    ],
+                  ),
                 ),
               ),
             ),

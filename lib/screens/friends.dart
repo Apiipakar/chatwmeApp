@@ -140,7 +140,7 @@ class _FriendsState extends State<Friends> {
                         padding: const EdgeInsets.all(2),
                         decoration: BoxDecoration(
                           border: Border.all(
-                            color: Colors.grey.withOpacity(0.8),
+                            color: Colors.black.withOpacity(0.05),
                             width: 1,
                           ),
                           borderRadius: BorderRadius.circular(10.0),
