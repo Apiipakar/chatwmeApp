@@ -526,6 +526,9 @@ class _GroupScreenState extends State<GroupScreen> {
                                                     height: 150,
                                                     "${api.groupImageUrl}/${message['image'].toString()}")),
                                             Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment
+                                                      .spaceBetween,
                                               children: [
                                                 Text(message["message"]),
                                                 const SizedBox(width: 10),
