@@ -56,8 +56,6 @@ class _ChatsState extends State<Chats> {
 
       setState(() {
         _isLoading = false;
-
-        // Show loading indicator
       });
     } else {
       ConversationList = jsonDecode(response.body);
@@ -151,13 +149,13 @@ class _ChatsState extends State<Chats> {
                           Container(
                             width: 40,
                             decoration: const BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: MyColors.primaryColor),
+                              shape: BoxShape.circle,
+                            ),
                             child: IconButton(
                               icon: const Icon(
                                 Icons.refresh,
                                 size: 25,
-                                color: Colors.white,
+                                color: MyColors.primaryColor,
                               ),
                               onPressed: () {
                                 setState(() {

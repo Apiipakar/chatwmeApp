@@ -3,6 +3,8 @@ import "dart:convert";
 import "package:chatwme/components/Colors.dart";
 import "package:chatwme/components/apiUrl.dart";
 import "package:chatwme/components/header.dart";
+import "package:chatwme/screens/createGroup.dart";
+import "package:chatwme/screens/groupScreen.dart";
 import "package:flutter/material.dart";
 import "package:flutter/widgets.dart";
 import "package:shared_preferences/shared_preferences.dart";
@@ -85,7 +87,7 @@ class _GroupsState extends State<Groups> {
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
                           Expanded(
-                            flex: 3,
+                            flex: 2,
                             child: SizedBox(
                               height: 40,
                               child: TextField(
@@ -120,18 +122,42 @@ class _GroupsState extends State<Groups> {
                           Container(
                             width: 40,
                             decoration: const BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: MyColors.primaryColor),
+                              shape: BoxShape.circle,
+                              // color: MyColors.primaryColor,
+                            ),
                             child: IconButton(
                               icon: const Icon(
                                 Icons.refresh,
                                 size: 25,
-                                color: Colors.white,
+                                color: MyColors.primaryColor,
                               ),
                               onPressed: () {
                                 setState(() {
                                   _LoadGroups(_txtSearch.text);
                                 });
+                              },
+                            ),
+                          ),
+                          Container(
+                            width: 40,
+                            decoration: const BoxDecoration(
+                              shape: BoxShape.circle,
+                              // color: MyColors.primaryColor,
+                            ),
+                            child: IconButton(
+                              icon: const Icon(
+                                Icons.create,
+                                size: 25,
+                                color: MyColors.primaryColor,
+                              ),
+                              onPressed: () async {
+                                final result = Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (context) => CreateGroup()));
+                                if (result != null && result == true) {
+                                  _LoadGroups(_txtSearch.text);
+                                }
                               },
                             ),
                           ),
@@ -148,7 +174,7 @@ class _GroupsState extends State<Groups> {
                                     Text(groupList["data"].toString()),
                                     Container(
                                         child: ElevatedButton(
-                                      child: const Text("Add Friends"),
+                                      child: const Text("Create Group"),
                                       style: const ButtonStyle(
                                           shape: MaterialStatePropertyAll(
                                               RoundedRectangleBorder(
@@ -162,7 +188,13 @@ class _GroupsState extends State<Groups> {
                                               MaterialStatePropertyAll(
                                             MyColors.primaryColor,
                                           )),
-                                      onPressed: () {},
+                                      onPressed: () {
+                                        Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                                builder: (context) =>
+                                                    CreateGroup()));
+                                      },
                                     ))
                                   ],
                                 ),
@@ -173,7 +205,7 @@ class _GroupsState extends State<Groups> {
                                     itemCount: groupList["data"].length,
                                     itemBuilder: (context, index) {
                                       var groupData = groupList["data"][index];
-                                      print(groupData);
+
                                       return groups(groupData);
                                     }))))
               ],
@@ -183,45 +215,48 @@ class _GroupsState extends State<Groups> {
 
   Widget groups(groups) {
     return Container(
-        margin: const EdgeInsets.symmetric(vertical: 5),
-        decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(5),
-            border: Border.all(
-              width: 1,
-              color: Colors.black.withOpacity(0.05),
-            )),
         child: Container(
-          margin: const EdgeInsets.symmetric(vertical: 5),
-          decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(5),
-              border: Border.all(
-                width: 1,
-                color: Colors.black.withOpacity(0.05),
-              )),
-          child: ListTile(
-            minLeadingWidth: 0,
-            leading: ClipRRect(
-              borderRadius: BorderRadius.circular(30),
-              child: groups["groupImage"] != null
-                  ? Image.network(
-                      "${api.profilImageUrl}/${groups["groupImage"].toString()}",
-                      width: 50,
-                      height: 50,
-                      fit: BoxFit.cover,
-                    )
-                  : Image.asset(
-                      "Assets/noprofile.jpg",
-                    ),
-            ),
-            title: Text(
-              substrictString(groups["groupName"].toString()),
-              style: const TextStyle(fontWeight: FontWeight.w600),
-            ),
-            subtitle: Text(
-              groups["messageContent"] == null ? "" : groups["messageContent"],
-              style: const TextStyle(color: Colors.black54),
-            ),
-          ),
-        ));
+      margin: const EdgeInsets.symmetric(vertical: 5),
+      decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(5),
+          border: Border.all(
+            width: 1,
+            color: Colors.black.withOpacity(0.05),
+          )),
+      child: ListTile(
+        onTap: () {
+          Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (context) => GroupScreen(
+                        groupId: groups["groupId"].toString(),
+                        groupName: groups["groupName"].toString(),
+                        groupImage: groups["groupImage"].toString(),
+                      )));
+        },
+        minLeadingWidth: 0,
+        leading: ClipRRect(
+          borderRadius: BorderRadius.circular(30),
+          child: groups["groupImage"] != null
+              ? Image.network(
+                  "${api.profilImageUrl}/${groups["groupImage"].toString()}",
+                  width: 50,
+                  height: 50,
+                  fit: BoxFit.cover,
+                )
+              : Image.asset(
+                  "Assets/noprofile.jpg",
+                ),
+        ),
+        title: Text(
+          substrictString(groups["groupName"].toString()),
+          style: const TextStyle(fontWeight: FontWeight.w600),
+        ),
+        subtitle: Text(
+          groups["messageContent"] == null ? "" : groups["messageContent"],
+          style: const TextStyle(color: Colors.black54),
+        ),
+      ),
+    ));
   }
 }

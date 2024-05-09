@@ -61,6 +61,13 @@ class _LoginState extends State<Login> {
             duration: Duration(seconds: 3),
           ),
         );
+      } else if (int.parse(jsonResponseMap["user"][0]["isDeleted"]) == 1) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("user not found"),
+            duration: Duration(seconds: 3),
+          ),
+        );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(

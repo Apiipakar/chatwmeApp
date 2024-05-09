@@ -16,7 +16,6 @@ void main() async {
   // Check if userId exists in SharedPreferences
   final prefs = await SharedPreferences.getInstance();
   final userId = prefs.getInt('userId');
-  // const Color myPrimaryColor = Color(0xFF525050);
   return runApp(MaterialApp(
     debugShowCheckedModeBanner: false,
     home: userId != null ? const HomePage() : const Login(),

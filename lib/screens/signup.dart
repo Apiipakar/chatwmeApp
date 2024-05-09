@@ -1,4 +1,5 @@
 import 'package:chatwme/components/Colors.dart';
+import 'package:chatwme/components/apiUrl.dart';
 import 'package:chatwme/screens/login.dart';
 import 'package:flutter/material.dart';
 import "package:http/http.dart" as http;
@@ -12,6 +13,7 @@ class SignUp extends StatefulWidget {
 }
 
 class _SignUpState extends State<SignUp> {
+  ApiUrl api = ApiUrl();
   final TextEditingController _fullnameTxt = TextEditingController();
   final TextEditingController _usernameTxt = TextEditingController();
   final TextEditingController _emailTxt = TextEditingController();
@@ -26,11 +28,8 @@ class _SignUpState extends State<SignUp> {
 
 //create user operation.
   Future<void> _registerUser() async {
-    const url =
-        'http://localhost:8081/chatApp/Database/Api.php'; // Replace with your API endpoint
-
     final response = await http.post(
-      Uri.parse(url),
+      Uri.parse(api.url),
       body: {
         'action': "createUser",
         'phone_number': _phoneTxt.text,
@@ -229,8 +228,10 @@ class _SignUpState extends State<SignUp> {
                     const Text("|"),
                     GestureDetector(
                       onTap: () {
-                        Navigator.push(context,
-                            MaterialPageRoute(builder: (context) => const Login()));
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => const Login()));
                       },
                       child: const Text(
                         " Login",

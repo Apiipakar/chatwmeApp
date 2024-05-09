@@ -39,6 +39,7 @@ class _ConversationScreenState extends State<ConversationScreen> {
   final picker = ImagePicker();
   var receiverInfo;
   var messages;
+
   bool _isLoading = false;
 
   @override
@@ -99,6 +100,7 @@ class _ConversationScreenState extends State<ConversationScreen> {
         setState(() {
           _isLoading = false;
         });
+
         messages = decodeResponse["data"];
         // print(messages);
       }
@@ -480,10 +482,9 @@ class _ConversationScreenState extends State<ConversationScreen> {
           )
         : GestureDetector(
             onLongPress: () {
-              print(message);
               setState(() {
+                messageToDeleteId = message["messageId"];
                 _hideDeleteButton = !_hideDeleteButton;
-                // _isSelected = !_isSelected;
               });
             },
             child: Align(
